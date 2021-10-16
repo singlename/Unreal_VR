@@ -64,10 +64,10 @@ void AVRCharacter::BeginPlay()
 		RightController->SetHand(EControllerHand::Right);
 		RightController->SetOwner(this);
 		RightController->AttachToComponent(VRRoot, FAttachmentTransformRules::KeepRelativeTransform);
-		
-		
 	}
 
+	// They set each other as other controller so that they can communicate, see each other
+	LeftController->PairController(RightController);
 }
 
 // Called every frame
