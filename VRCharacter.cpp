@@ -30,14 +30,14 @@ AVRCharacter::AVRCharacter()
 	Camera = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
 	Camera->SetupAttachment(VRRoot);
 
-	TeleportPath = CreateDefaultSubobject<USplineComponent>(TEXT("TeleportPath"));
-	TeleportPath->SetupAttachment(VRRoot);
+	//TeleportPath = CreateDefaultSubobject<USplineComponent>(TEXT("TeleportPath"));
+	//TeleportPath->SetupAttachment(VRRoot);
 
-	DestinationMarker = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("DestinationMarker"));
-	DestinationMarker->SetupAttachment(GetRootComponent());
+	//DestinationMarker = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("DestinationMarker"));
+	//DestinationMarker->SetupAttachment(GetRootComponent());
 
-	PostProcessingComponent = CreateDefaultSubobject<UPostProcessComponent>(TEXT("PostProcessingComponent"));
-	PostProcessingComponent->SetupAttachment(GetRootComponent());
+	//PostProcessingComponent = CreateDefaultSubobject<UPostProcessComponent>(TEXT("PostProcessingComponent"));
+	//PostProcessingComponent->SetupAttachment(GetRootComponent());
 }
 
 // Called when the game starts or when spawned
@@ -78,8 +78,9 @@ void AVRCharacter::Tick(float DeltaTime)
 
 	FVector NewCameraOffset = Camera->GetComponentLocation() - GetActorLocation();
 	NewCameraOffset.Z = 0;
-	AddActorWorldOffset(-NewCameraOffset);
+	AddActorWorldOffset(NewCameraOffset);
 	VRRoot->AddWorldOffset(-NewCameraOffset);
+	// FVector NewCameraOffset = Camera->GetComponentLocation() - GetActorLocation();
 
 	// UpdateDestinationMarker();
 	//UpdateBlinkers();
@@ -217,15 +218,37 @@ void AVRCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 void AVRCharacter::MoveForward(float throttle) {
 	if (throttle != 0) {
 		GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, FString::Printf(TEXT("Move fw throttle %f"), throttle));
+
+		//AddMovementInput(throttle * LeftController->GetActorForwardVector());
+
+		// Find out which way is forward
+
+		const FRotator Rotation = Controller->GetControlRotation();
+
+		const FRotator YawRotation(0, Rotation.Yaw, 0);
+
+		// Get forward vector
+
+		const FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
+
+		AddMovementInput(Direction, throttle);
 	}
-	AddMovementInput(throttle * LeftController->GetActorForwardVector());
 }
 
 void AVRCharacter::MoveRight(float throttle) {
 	if (throttle != 0) {
 		GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, FString::Printf(TEXT("Move l throttle %f"), throttle));
+
+		const FRotator Rotation = Controller->GetControlRotation();
+
+		const FRotator YawRotation(0, Rotation.Yaw, 0);
+
+		// Get Right vector
+
+		const FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
+
+		AddMovementInput(Direction, throttle);
 	}
-	AddMovementInput(throttle * LeftController->GetActorRightVector());
 }
 
 void AVRCharacter::StartFade(float FromAlpha, float ToAlpha) {
@@ -251,20 +274,9 @@ void AVRCharacter::FinishTeleport() {
 }
 
 void AVRCharacter::Turn(float throttle) {
-	
-	//if (GEngine && throttle != 0) {
-		//GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, FString::Printf(TEXT("Turn throttle %f"), throttle));
-	//	FRotator Rotation;
-	//	Rotation.Add(0, 3*throttle, 0);
-	//	VRRoot->AddWorldRotation(Rotation);
-	
-	//}
 
 	if (throttle != 0) {
 		GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, FString::Printf(TEXT("Turn throttle %f"), throttle));
-		//AddControllerYawInput(throttle);
-		//FRotator Rotation;
-		//Rotation.Add(0, throttle * LeftController->GetActorRotation(), 0);
-		VRRoot->AddWorldRotation(LeftController->GetActorRotation());
+		AddControllerYawInput(throttle);
 	}
 }
