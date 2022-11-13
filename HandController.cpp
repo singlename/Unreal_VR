@@ -6,6 +6,7 @@
 #include "GameFramework/PlayerController.h"
 #include "GameFramework/Character.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "MotionControllerComponent.h"
 
 // Sets default values
 AHandController::AHandController()
@@ -38,6 +39,10 @@ void AHandController::Tick(float DeltaTime)
 		FVector HandControllerDelta = GetActorLocation() - ClimbingStartLocation;
 		GetAttachParentActor()->AddActorWorldOffset(-HandControllerDelta);
 	}
+
+	if (bIsHolding) {
+		// Hold object
+	}
 }
 
 void AHandController::ActorBeginOverlap(AActor* OverlappedActor, AActor* OtherActor)
@@ -45,7 +50,7 @@ void AHandController::ActorBeginOverlap(AActor* OverlappedActor, AActor* OtherAc
 	bool bNewCanClimb = CanClimb();
 	if (!bCanClimb && bNewCanClimb)
 	{
-		// UE_LOG(LogTemp, Warning, TEXT("Can Climb!"));
+		UE_LOG(LogTemp, Warning, TEXT("Can Climb!"));
 		APawn* Pawn = Cast<APawn>(GetAttachParentActor());
 		if (Pawn != nullptr) {
 			APlayerController* Controller = Cast<APlayerController>(Pawn->GetController());
@@ -55,11 +60,26 @@ void AHandController::ActorBeginOverlap(AActor* OverlappedActor, AActor* OtherAc
 		}
 	}
 	bCanClimb = bNewCanClimb;
+
+	//bool bNewCanHold = CanHold();
+	//if (!bCanHold && bNewCanHold)
+	//{
+		//UE_LOG(LogTemp, Warning, TEXT("Can Hold!"));
+		//APawn* Pawn = Cast<APawn>(GetAttachParentActor());
+		//if (Pawn != nullptr) {
+		//	APlayerController* Controller = Cast<APlayerController>(Pawn->GetController());
+		//	if (Controller != nullptr) {
+		//		Controller->PlayHapticEffect(HapticEffect, MotionController->GetTrackingSource());
+		//	}
+		//}
+	//}
+	//bCanHold = bNewCanHold;
 }
 
 void AHandController::ActorEndOverlap(AActor* OverlappedActor, AActor* OtherActor)
 {
 	bCanClimb = CanClimb();
+	//bCanHold = CanHold();
 }
 
 bool AHandController::CanClimb() const
@@ -77,21 +97,52 @@ bool AHandController::CanClimb() const
 	return false;
 }
 
-void AHandController::Grip() {
-	if (!bCanClimb) {
-		return;
+bool AHandController::CanHold() const
+{
+	TArray<AActor*> OverlappingActors;
+	GetOverlappingActors(OverlappingActors);
+	for (AActor* OverlappingActor : OverlappingActors)
+	{
+		if (OverlappingActor->ActorHasTag(TEXT("Holdable")))
+		{
+			return true;
+		}
 	}
 
-	if (!bIsClimbing) {
-		bIsClimbing = true;
-		ClimbingStartLocation = GetActorLocation();
+	return false;
+}
 
-		// Set other controller as not climbing (steal controll)
-		OtherController->bIsClimbing = false;
+void AHandController::Grip() {
+	if (bCanClimb) {
+		if (!bIsClimbing) {
+			bIsClimbing = true;
+			ClimbingStartLocation = GetActorLocation();
 
-		ACharacter* Character = Cast<ACharacter>(GetAttachParentActor());
-		if (Character != nullptr) {
-			Character->GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Flying);
+			// Set other controller as not climbing (steal controll)
+			OtherController->bIsClimbing = false;
+
+			ACharacter* Character = Cast<ACharacter>(GetAttachParentActor());
+			if (Character != nullptr) {
+				UE_LOG(LogTemp, Warning, TEXT("Climbing!"));
+				Character->GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Flying);
+			}
+		}
+	}
+
+	if (bCanHold) {
+		if (!bIsHolding) {
+			bIsHolding = true;
+			//HoldingStartLocation = GetActorLocation();
+
+			// Set other controller as not climbing (steal controll)
+			//OtherController->bIsHolding = false;
+
+			//ACharacter* Character = Cast<ACharacter>(GetAttachParentActor());
+			//if (Character != nullptr) {
+				//UE_LOG(LogTemp, Warning, TEXT("Holding!"));
+				// attach object to controller, assess position
+				// Character->GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Flying);
+			//}
 		}
 	}
 }
@@ -106,6 +157,15 @@ void AHandController::Release() {
 		}
 	}
 
+	if (bIsHolding) {
+		bIsHolding = false;
+
+		//ACharacter* Character = Cast<ACharacter>(GetAttachParentActor());
+		//if (Character != nullptr) {
+			// make object fall down
+			// Character->GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Falling);
+		//}
+	}
 }
 
 void AHandController::PairController(AHandController* Controller) {

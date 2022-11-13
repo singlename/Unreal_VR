@@ -43,6 +43,7 @@ private:
 	// Helpers
 
 	bool CanClimb() const;
+	bool CanHold() const;
 
 	// Default sub object
 
@@ -56,7 +57,10 @@ private:
 	// State
 	bool bCanClimb = false;
 	bool bIsClimbing = false;
+	bool bCanHold = false;
+	bool bIsHolding = false;
 	FVector ClimbingStartLocation;
+	FVector HoldingStartLocation;
 	AHandController* OtherController;
 
 };
