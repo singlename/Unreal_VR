@@ -78,7 +78,7 @@ void AVRCharacter::Tick(float DeltaTime)
 
 	FVector NewCameraOffset = Camera->GetComponentLocation() - GetActorLocation();
 	NewCameraOffset.Z = 0;
-	AddActorWorldOffset(NewCameraOffset);
+	AddActorWorldOffset(-NewCameraOffset);
 	VRRoot->AddWorldOffset(-NewCameraOffset);
 	// FVector NewCameraOffset = Camera->GetComponentLocation() - GetActorLocation();
 
@@ -219,25 +219,25 @@ void AVRCharacter::MoveForward(float throttle) {
 	if (throttle != 0) {
 		GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, FString::Printf(TEXT("Move fw throttle %f"), throttle));
 
-		//AddMovementInput(throttle * LeftController->GetActorForwardVector());
+		AddMovementInput(throttle * LeftController->GetActorForwardVector());
 
 		// Find out which way is forward
 
-		const FRotator Rotation = Controller->GetControlRotation();
+		//const FRotator Rotation = Controller->GetControlRotation();
 
-		const FRotator YawRotation(0, Rotation.Yaw, 0);
+		//const FRotator YawRotation(0, Rotation.Yaw, 0);
 
 		// Get forward vector
 
-		const FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
+		//const FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
 
-		AddMovementInput(Direction, throttle);
+		//AddMovementInput(Direction, throttle);
 	}
 }
 
 void AVRCharacter::MoveRight(float throttle) {
 	if (throttle != 0) {
-		GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, FString::Printf(TEXT("Move l throttle %f"), throttle));
+		//GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, FString::Printf(TEXT("Move l throttle %f"), throttle));
 
 		const FRotator Rotation = Controller->GetControlRotation();
 
